@@ -7,6 +7,8 @@ class Home extends React.Component {
     super(props);
     this.state = {
       todoList: [],
+      newTodoName: '',
+      newTodoCompleted: undefined
     };
     
     // this.getAllTodo.bind(this.state);
@@ -34,14 +36,40 @@ class Home extends React.Component {
       });
   };
 
-   createTodoRow = (todo) => {
-     return (
-     <tr>
-       <td>{todo.name}</td>
-       <td>{todo.completed === true ? 'completed' : 'pending'}</td>
-      </tr>
-      )
-   }
+  createTodoRow = (todo) => {
+    return (
+    <tr>
+      <td>{todo.name}</td>
+      <td>{todo.completed === true ? 'completed' : 'pending'}</td>
+    </tr>
+    )
+  }
+
+  addTodo = (e) => {
+    e.preventDefault();
+    let todoName = this.state.newTodoName;
+    let todoCompleted = this.state.newTodoCompleted;
+
+    let data = {
+      name: todoName,
+      completed: todoCompleted
+    };
+
+    axios
+      .post('http://localhost:3001/todo', data)
+      .then((response) => {
+        // handle success
+        this.getAllToDo();
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
+      .then(function () {
+        // always executed
+      });
+  }
+
   render() {
     if(this.state.todoList.length <= 0) {
       return 'is loading'
@@ -52,16 +80,24 @@ class Home extends React.Component {
       <div class="task-form">
 		    <h1>To Do Application</h1>
 
-        <form action="/todo/" method="POST">
+        <form action="" method="POST">
           <label for="taskname">Task Name</label><br/>
-          <input type="text" id="taskname" name="taskname" /><br/>
+          <input type="text" id="taskname" name="taskname" 
+          placeholder="Add Task"
+          value={this.state.newTodoName}
+          onChange={(e) => this.setState({newTodoName: e.target.value})}
+          />
+          <br/>
           <label for="status">Status</label> <br/>
-          <select name="status" id="status">
+          <select name="status" id="status"
+          value={this.state.newTodoCompleted === true ? 'yes' : 'no'}
+          onChange={(e) => this.setState({newTodoCompleted: e.target.value === 'yes' ? true : false})}
+          >
             <option value="yes">YES</option>
             <option value="no">NO</option>
           </select>
           <br/>
-          <input type="submit" class="submit-btn" value="Add To Do " />
+          <input type="submit" onClick={this.addTodo} class="submit-btn" value="Add To Do " />
 
         </form>
 
