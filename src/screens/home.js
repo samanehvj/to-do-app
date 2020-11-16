@@ -68,7 +68,7 @@ class Home extends React.Component {
 	    </div>
 	    <div class="task-list">
         <h2>To do list ({this.state.todoList.length})</h2>
-        <table border='1'>
+        <table>
           <tr>
             <th>NAME</th>
             <th>COMPLETED</th>
