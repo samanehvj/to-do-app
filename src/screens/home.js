@@ -8,11 +8,11 @@ class Home extends React.Component {
     this.state = {
       todoList: [],
       newTodoName: '',
-      newTodoCompleted: undefined
+      newTodoCompleted: undefined,
+      editId: undefined
     };
     
     // this.getAllTodo.bind(this.state);
-
     this.getAllToDo();
   }
   
@@ -23,7 +23,7 @@ class Home extends React.Component {
       .then((response) => {
         // handle success
         let data = response.data;
-        console.log(data);
+        // console.log(data);
         //STORE DATA INSIDE STATE VARIABLE
         this.setState({ todoList: data.todos });
       })
@@ -41,6 +41,10 @@ class Home extends React.Component {
     <tr>
       <td>{todo.name}</td>
       <td>{todo.completed === true ? 'completed' : 'pending'}</td>
+      <td>
+        <a href="#" className="edit-link" onClick={(e) => this.setTodoEditable(e, todo.id, todo.name, todo.completed)}> Edit </a>
+         / <a href="#" className="delete-link" onClick={(e) => this.deleteTodo(e, todo.id)}> Delete </a>
+      </td>
     </tr>
     )
   }
@@ -59,7 +63,9 @@ class Home extends React.Component {
       .post('http://localhost:3001/todo', data)
       .then((response) => {
         // handle success
-        this.getAllToDo();
+        // this.getAllToDo();
+        this.setState({ todoList: response.data.todos });
+
       })
       .catch(function (error) {
         // handle error
@@ -68,6 +74,81 @@ class Home extends React.Component {
       .then(function () {
         // always executed
       });
+  }
+
+  setTodoEditable = (e, id, name, completed) => {
+    e.preventDefault();
+    this.setState({
+      editId: id,
+      newTodoName: name,
+      newTodoCompleted: completed
+    });
+  }
+
+  editTodo = (e) => {
+    e.preventDefault();
+    let todoId = this.state.editId;
+    let todoName = this.state.newTodoName;
+    let todoCompleted = this.state.newTodoCompleted;
+
+    let data = {
+      id: todoId,
+      name: todoName,
+      completed: todoCompleted
+    };
+
+    axios
+      .put('http://localhost:3001/todo', data)
+      .then((response) => {
+        // handle success
+        this.cancelEdit();
+        // this.getAllToDo();
+        this.setState({ todoList: response.data.todos });
+
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
+      .then(function () {
+        // always executed
+      });
+  }
+
+  deleteTodo = (e, id) => {
+    e.preventDefault();
+
+    let deleteTodoId = id;
+   
+    let dataDel = {
+      id: deleteTodoId
+    };
+      axios
+        .delete('http://localhost:3001/todo', {data: dataDel})
+        .then((response) => {
+          // handle success
+          console.log(response.data.todos);
+          this.cancelEdit();
+          // this.getAllToDo();
+          this.setState({ todoList: response.data.todos });
+          
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        })
+        .then(function () {
+          // always executed
+        });
+      
+  }
+
+  cancelEdit = () => {
+    this.setState({
+      editId: undefined,
+      newTodoName: '',
+      newTodoCompleted: false
+    });
   }
 
   render() {
@@ -97,7 +178,23 @@ class Home extends React.Component {
             <option value="no">NO</option>
           </select>
           <br/>
-          <input type="submit" onClick={this.addTodo} class="submit-btn" value="Add To Do " />
+            {this.state.editId === undefined && (
+              <button type="submit" onClick={this.addTodo} class="submit-btn" >
+                Add
+              </button>
+            )}
+
+            {this.state.editId !== undefined && (
+              <button type="submit" onClick={this.editTodo} class="edit-btn" >
+                Edit
+              </button>
+            )}
+          
+            {this.state.editId !== undefined && (
+              <button type="submit" onClick={this.cancelEdit} class="cancel-btn" >
+                Cancel
+              </button>
+            )}
 
         </form>
 
@@ -108,6 +205,7 @@ class Home extends React.Component {
           <tr>
             <th>NAME</th>
             <th>COMPLETED</th>
+            <th>ACTION</th>
           </tr>
           {this.state.todoList.map(this.createTodoRow)}
         
